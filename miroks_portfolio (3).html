@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miroks | 3D Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050508;--bg2:#0a0a10;--bg3:#10101a;
+  --accent:#7c6bff;--accent2:#c77dff;
+  --text:#e8e8f0;--muted:#7a7a9a;
+  --border:rgba(124,107,255,0.15);--glow:rgba(124,107,255,0.3)
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);font-family:'Space Grotesk',sans-serif;color:var(--text);overflow-x:hidden;cursor:none}
+
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1;opacity:.4}
+
+#starCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+.grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;
+  background-image:linear-gradient(rgba(124,107,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(124,107,255,0.04) 1px,transparent 1px);
+  background-size:60px 60px;pointer-events:none;z-index:0;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%)}
+
+.cursor{width:8px;height:8px;background:var(--accent);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transition:transform 0.1s;mix-blend-mode:screen}
+.cursor-ring{width:32px;height:32px;border:1px solid rgba(124,107,255,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transition:all 0.12s ease;transform:translate(-12px,-12px)}
+.cursor-ring.active{width:48px;height:48px;transform:translate(-20px,-20px);border-color:var(--accent2)}
+
+/* SPLASH */
+.splash{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2000;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;
+  transition:opacity 1.2s ease,visibility 1.2s ease}
+.splash.gone{opacity:0;visibility:hidden}
+#splashBg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+
+.splash-content{position:relative;z-index:10;text-align:center}
+.splash-logo-wrap{position:relative;display:inline-block;margin-bottom:40px}
+.splash-logo{font-family:'Space Mono',monospace;font-size:4rem;font-weight:700;
+  background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-0.04em;
+  animation:logoFloat 3s ease-in-out infinite}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.splash-rings{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.splash-ring{position:absolute;border-radius:50%;border:1px solid;top:50%;left:50%;transform:translate(-50%,-50%);animation:ringPulse 2s ease-out infinite}
+.splash-ring:nth-child(1){width:120px;height:120px;border-color:rgba(124,107,255,0.4);animation-delay:0s}
+.splash-ring:nth-child(2){width:180px;height:180px;border-color:rgba(124,107,255,0.25);animation-delay:0.4s}
+.splash-ring:nth-child(3){width:240px;height:240px;border-color:rgba(199,125,255,0.15);animation-delay:0.8s}
+@keyframes ringPulse{0%{transform:translate(-50%,-50%) scale(0.6);opacity:0}50%{opacity:1}100%{transform:translate(-50%,-50%) scale(1.1);opacity:0}}
+
+.splash-glitch{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.3em;color:var(--accent);text-transform:uppercase;margin-bottom:32px;animation:glitch 4s infinite}
+@keyframes glitch{0%,90%,100%{text-shadow:none;transform:none}92%{text-shadow:-2px 0 #c77dff;transform:translateX(2px)}94%{text-shadow:2px 0 #7c6bff;transform:translateX(-2px)}96%{text-shadow:-1px 0 #c77dff;transform:none}}
+
+.splash-progress-wrap{width:280px;margin:0 auto 16px}
+.splash-progress-track{width:100%;height:2px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;position:relative}
+.splash-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 1.6s cubic-bezier(0.4,0,0.2,1);position:relative}
+.splash-progress-fill::after{content:'';position:absolute;right:0;top:-2px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px var(--accent2)}
+.splash-pct{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);text-align:right;margin-top:8px;letter-spacing:0.1em}
+.splash-tag{margin-top:24px;font-size:0.75rem;letter-spacing:0.12em;color:var(--muted);font-family:'Space Mono',monospace}
+.splash-tag span{color:var(--accent);animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.splash-lines{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.splash-line-bar{width:3px;border-radius:2px;background:var(--accent);animation:barDance 1s ease-in-out infinite}
+.splash-line-bar:nth-child(1){height:20px;animation-delay:0s}
+.splash-line-bar:nth-child(2){height:35px;animation-delay:0.15s}
+.splash-line-bar:nth-child(3){height:28px;animation-delay:0.3s}
+.splash-line-bar:nth-child(4){height:40px;animation-delay:0.45s}
+.splash-line-bar:nth-child(5){height:22px;animation-delay:0.6s}
+.splash-line-bar:nth-child(6){height:32px;animation-delay:0.75s}
+@keyframes barDance{0%,100%{transform:scaleY(1);opacity:0.6}50%{transform:scaleY(0.3);opacity:1}}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 60px;display:flex;align-items:center;justify-content:space-between;transition:background 0.3s,backdrop-filter 0.3s}
+nav.scrolled{background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Space Mono',monospace;font-weight:700;font-size:1.1rem;color:var(--accent);letter-spacing:0.05em}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:0.85rem;letter-spacing:0.05em;transition:color 0.2s;text-transform:uppercase;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--accent);transition:width 0.25s}
+.nav-links a:hover{color:var(--text)}
+.nav-links a:hover::after{width:100%}
+
+main{position:relative;z-index:2}
+section{padding:120px 0;max-width:1240px;margin:0 auto;padding-left:60px;padding-right:60px}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding-top:80px;position:relative;max-width:100%;padding-left:60px;padding-right:60px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase;margin-bottom:28px;background:rgba(124,107,255,0.08);border:1px solid var(--border);padding:8px 16px;border-radius:40px}
+.hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 1.5s infinite}
+.hero-title{font-size:clamp(3.5rem,7vw,7rem);font-weight:700;line-height:1.0;letter-spacing:-0.04em;margin-bottom:24px}
+.hero-title .line1{color:var(--text)}
+.hero-title .line2{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-title .line3{color:rgba(232,232,240,0.35)}
+.hero-desc{color:var(--muted);font-size:1.05rem;max-width:520px;line-height:1.7;margin-bottom:48px}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+.btn{padding:14px 32px;border-radius:4px;font-size:0.9rem;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.02em}
+.btn-solid{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.btn-solid:hover{background:#6a5be8;box-shadow:0 0 24px var(--glow);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.15)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+.hero-stats{display:flex;gap:48px;margin-top:80px;padding-top:48px;border-top:1px solid var(--border)}
+.stat-num{font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+.stat-label{font-size:0.8rem;color:var(--muted);margin-top:6px;letter-spacing:0.05em}
+
+.hero-visual{position:absolute;right:60px;top:50%;transform:translateY(-50%);width:420px;height:420px;pointer-events:none}
+@media(max-width:1000px){.hero-visual{display:none}}
+.hero-canvas{width:100%;height:100%}
+
+/* SECTION LABEL */
+.section-label{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;color:var(--accent);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-title{font-size:clamp(1.8rem,3vw,2.8rem);font-weight:700;letter-spacing:-0.03em;margin-bottom:16px}
+.section-sub{color:var(--muted);font-size:1rem;line-height:1.7;max-width:560px;margin-bottom:56px}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:56px}
+.about-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:32px;transition:border-color 0.25s,background 0.25s,transform 0.25s}
+.about-card:hover{border-color:rgba(124,107,255,0.4);background:var(--bg3);transform:translateY(-4px)}
+.about-card-icon{font-size:1.5rem;color:var(--accent);margin-bottom:16px}
+.about-card h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.about-card p{color:var(--muted);font-size:0.875rem;line-height:1.7}
+.skills-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px}
+.skill-pill{padding:6px 14px;border-radius:4px;font-size:0.75rem;font-weight:500;background:rgba(124,107,255,0.1);border:1px solid rgba(124,107,255,0.2);color:var(--accent);font-family:'Space Mono',monospace;letter-spacing:0.05em;transition:all 0.2s;cursor:default}
+.skill-pill:hover{background:rgba(124,107,255,0.2);border-color:var(--accent);transform:scale(1.05)}
+
+/* ===== PORTFOLIO ===== */
+.portfolio-filter{display:flex;gap:8px;margin-bottom:40px;flex-wrap:wrap}
+.filter-btn{padding:7px 18px;border-radius:40px;font-size:0.8rem;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.2s;font-family:'Space Grotesk',sans-serif}
+.filter-btn.active,.filter-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(124,107,255,0.08)}
+
+/* ===== PROJECT GROUP ===== */
+.project-group{margin-bottom:56px}
+.project-group-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.project-group-title{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.2em;color:var(--accent2);text-transform:uppercase}
+.project-group-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(199,125,255,0.3),transparent)}
+.project-group-count{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);background:rgba(124,107,255,0.1);border:1px solid var(--border);padding:3px 8px;border-radius:4px}
+
+/* PORTFOLIO GRID */
+.portfolio-grid{display:grid;gap:12px}
+
+/* Multi-image groups */
+.pf-multi{display:grid;gap:12px}
+.pf-multi-2{grid-template-columns:1fr 1fr}
+.pf-multi-3{grid-template-columns:1fr 1fr 1fr}
+.pf-multi-main{grid-column:1/-1}
+
+/* Single wide */
+.pf-wide{grid-template-columns:1fr}
+
+.portfolio-item{position:relative;overflow:hidden;border-radius:8px;cursor:pointer;transition:transform 0.3s ease;background:#0a0a14}
+.portfolio-item:hover{transform:scale(1.02)}
+
+/* real image inside */
+.pf-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s cubic-bezier(0.2,0.9,0.4,1);display:block}
+.portfolio-item:hover .pf-img{transform:scale(1.06)}
+
+.pf-img-wrap{position:absolute;inset:0;overflow:hidden}
+
+/* aspect ratios */
+.ar-wide{aspect-ratio:16/9}
+.ar-square{aspect-ratio:1}
+.ar-cinema{aspect-ratio:21/9}
+.ar-tall{aspect-ratio:3/4}
+.ar-landscape{aspect-ratio:4/3}
+
+.portfolio-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(5,5,8,0.95) 0%,rgba(5,5,8,0.2) 55%,transparent 100%);opacity:0;transition:opacity 0.35s;display:flex;align-items:flex-end;padding:24px;border-radius:8px}
+.portfolio-item:hover .portfolio-overlay{opacity:1}
+.portfolio-info h3{font-size:1.1rem;font-weight:600;margin-bottom:4px}
+.portfolio-info p{font-size:0.8rem;color:var(--muted)}
+.portfolio-tag{position:absolute;top:16px;left:16px;background:rgba(5,5,8,0.7);backdrop-filter:blur(8px);padding:4px 10px;border-radius:4px;font-size:0.7rem;font-family:'Space Mono',monospace;color:var(--accent);border:1px solid var(--border);opacity:0;transition:opacity 0.35s}
+.portfolio-item:hover .portfolio-tag{opacity:1}
+.portfolio-zoom{position:absolute;top:16px;right:16px;width:32px;height:32px;background:rgba(124,107,255,0.2);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:0.75rem;opacity:0;transition:opacity 0.35s;backdrop-filter:blur(8px)}
+.portfolio-item:hover .portfolio-zoom{opacity:1}
+
+/* ===== LIGHTBOX ===== */
+.lightbox{position:fixed;inset:0;z-index:3000;background:rgba(5,5,8,0.97);display:none;align-items:center;justify-content:center;backdrop-filter:blur(12px)}
+.lightbox.open{display:flex}
+.lb-inner{position:relative;width:90vw;max-width:1100px;height:80vh;display:flex;align-items:center;justify-content:center}
+.lb-content{width:100%;height:100%;border-radius:12px;overflow:hidden;position:relative}
+.lb-visual{width:100%;height:100%}
+.lb-visual img{width:100%;height:100%;object-fit:contain;border-radius:12px}
+.lb-close{position:absolute;top:-48px;right:0;width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-family:'Space Grotesk',sans-serif}
+.lb-close:hover{color:var(--text);border-color:var(--accent)}
+.lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border:1px solid rgba(124,107,255,0.3);border-radius:4px;background:rgba(5,5,8,0.7);color:var(--text);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(8px);z-index:10}
+.lb-arrow:hover{border-color:var(--accent);color:var(--accent);background:rgba(124,107,255,0.1)}
+.lb-prev{left:-60px}
+.lb-next{right:-60px}
+.lb-meta{position:absolute;bottom:-48px;left:0;display:flex;align-items:center;gap:16px}
+.lb-title{font-weight:600;font-size:0.95rem}
+.lb-cat{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--accent);background:rgba(124,107,255,0.1);border:1px solid var(--border);padding:3px 10px;border-radius:4px}
+.lb-dots{position:absolute;bottom:-48px;right:0;display:flex;gap:6px}
+.lb-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background 0.2s;cursor:pointer}
+.lb-dot.active{background:var(--accent)}
+
+/* PROCESS */
+.process-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:56px}
+.process-step{padding:32px 24px 32px 0;border-right:1px solid var(--border);position:relative}
+.process-step:last-child{border-right:none}
+.step-num{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.15em;margin-bottom:20px}
+.step-title{font-size:1rem;font-weight:600;margin-bottom:10px}
+.step-desc{font-size:0.85rem;color:var(--muted);line-height:1.6}
+.step-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;position:absolute;top:-4px;right:-4px;box-shadow:0 0 8px var(--accent)}
+.process-step:last-child .step-dot{display:none}
+
+/* CTA */
+.cta-block{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:72px;text-align:center;position:relative;overflow:hidden;margin-top:80px}
+.cta-block::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(124,107,255,0.15) 0%,transparent 70%);pointer-events:none}
+.cta-label{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.2em;color:var(--accent);margin-bottom:20px}
+.cta-title{font-size:2.5rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:16px}
+.cta-sub{color:var(--muted);margin-bottom:40px;font-size:1rem}
+.discord-btn{display:inline-flex;align-items:center;gap:12px;background:#5865F2;color:#fff;padding:16px 40px;border-radius:4px;font-weight:600;font-size:1rem;text-decoration:none;transition:all 0.2s;border:1px solid transparent}
+.discord-btn:hover{background:#4752c4;box-shadow:0 0 32px rgba(88,101,242,0.4);transform:translateY(-2px)}
+
+footer{border-top:1px solid var(--border);padding:40px 60px;max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.footer-logo{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700}
+.footer-copy{font-size:0.8rem;color:var(--muted)}
+.footer-socials{display:flex;gap:20px}
+.footer-socials a{color:var(--muted);font-size:1rem;transition:color 0.2s;text-decoration:none}
+.footer-socials a:hover{color:var(--accent)}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal.in{opacity:1;transform:none}
+.reveal-left{opacity:0;transform:translateX(-20px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal-left.in{opacity:1;transform:none}
+
+.marquee-wrap{overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 0}
+.marquee-inner{display:flex;gap:48px;white-space:nowrap;animation:marquee 24s linear infinite}
+.marquee-item{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:16px}
+.marquee-dot{width:4px;height:4px;background:var(--accent);border-radius:50%;flex-shrink:0}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+.scan-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,107,255,0.3),transparent);animation:scanLine 4s ease-in-out infinite;pointer-events:none;z-index:1}
+@keyframes scanLine{0%{top:0%;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+
+.particle{position:fixed;border-radius:50%;background:var(--accent);pointer-events:none;z-index:1;animation:floatParticle linear infinite}
+@keyframes floatParticle{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:0.6}90%{opacity:0.3}100%{transform:translateY(-100px) translateX(50px);opacity:0}}
+
+/* TOOL CARDS */
+.about-card-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.tool-logo-wrap{width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.06)}
+.tool-badge{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;padding:4px 10px;border-radius:4px;background:rgba(124,107,255,0.12);border:1px solid rgba(124,107,255,0.25);color:var(--accent)}
+.card-feature-row{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.card-feat{font-size:0.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.card-feat i{color:var(--accent);font-size:0.65rem}
+
+.substance-highlight{border-color:rgba(139,43,226,0.35)!important;background:linear-gradient(135deg,rgba(10,5,20,0.95) 0%,rgba(30,10,50,0.9) 100%)!important;position:relative;overflow:hidden}
+.substance-highlight:hover{border-color:rgba(199,125,255,0.5)!important}
+.substance-glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(139,43,226,0.2) 0%,transparent 70%);pointer-events:none}
+.substance-logo-pulse{animation:substancePulse 2.5s ease-in-out infinite}
+@keyframes substancePulse{0%,100%{box-shadow:0 0 0 0 rgba(139,43,226,0)}50%{box-shadow:0 0 16px 4px rgba(139,43,226,0.35)}}
+.substance-badge{background:rgba(139,43,226,0.2)!important;border-color:rgba(199,125,255,0.4)!important;color:#c77dff!important}
+.handmade-tag{margin-left:auto;font-size:0.65rem;color:#c77dff;font-family:'Space Mono',monospace;background:rgba(139,43,226,0.15);border:1px solid rgba(139,43,226,0.3);padding:3px 8px;border-radius:4px;letter-spacing:0.05em;white-space:nowrap}
+.substance-highlight p strong{color:#c77dff}
+
+.tools-showcase{margin-top:48px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:28px 32px}
+.tools-showcase-label{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:20px}
+.tools-list{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tool-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:6px;border:1px solid var(--border);background:rgba(255,255,255,0.02);transition:all 0.2s;cursor:default;position:relative}
+.tool-item:hover{border-color:rgba(124,107,255,0.4);background:rgba(124,107,255,0.06);transform:translateY(-2px)}
+.tool-item span{font-size:0.8rem;color:var(--muted);white-space:nowrap;font-family:'Space Mono',monospace}
+.tool-item:hover span{color:var(--text)}
+.tool-item-icon{width:28px;height:28px;flex-shrink:0}
+.tool-sep{color:var(--border);font-size:0.8rem;padding:0 2px;font-family:'Space Mono',monospace}
+.tool-hand-badge{position:absolute;top:-7px;right:-7px;background:var(--accent2);color:#fff;font-size:0.55rem;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.substance-pulse{animation:substancePulse 2.5s ease-in-out infinite;border-radius:5px}
+.tool-item::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(10,10,20,0.95);border:1px solid var(--border);color:var(--text);font-size:0.7rem;padding:4px 10px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity 0.2s;font-family:'Space Grotesk',sans-serif}
+.tool-item:hover::after{opacity:1}
+
+/* SOUND + MUSIC controls */
+.audio-controls{position:fixed;bottom:28px;right:28px;z-index:500;display:flex;gap:8px}
+.sound-btn{width:44px;height:44px;border-radius:50%;background:rgba(10,10,20,0.85);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;backdrop-filter:blur(10px);transition:all 0.2s}
+.sound-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sound-btn.muted{opacity:0.5}
+
+@media(max-width:768px){
+  section{padding:80px 24px}
+  nav{padding:16px 24px}
+  .nav-links{display:none}
+  .hero-title{font-size:2.8rem}
+  .pf-multi-2,.pf-multi-3{grid-template-columns:1fr}
+  .about-grid{grid-template-columns:1fr}
+  .process-steps{grid-template-columns:1fr 1fr}
+  .hero-stats{flex-wrap:wrap;gap:24px}
+  .cta-block{padding:40px 24px}
+  footer{flex-direction:column;gap:20px;padding:32px 24px;text-align:center}
+  .lb-prev{left:-10px}
+  .lb-next{right:-10px}
+  .lb-inner{width:95vw}
+}
+</style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+<div class="grid-bg"></div>
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="curRing"></div>
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+  <canvas id="splashBg"></canvas>
+  <div class="splash-content">
+    <div class="splash-logo-wrap">
+      <div class="splash-rings">
+        <div class="splash-ring"></div>
+        <div class="splash-ring"></div>
+        <div class="splash-ring"></div>
+      </div>
+      <div class="splash-logo">MIROKS</div>
+    </div>
+    <div class="splash-glitch">3D ARTIST & GENERALIST</div>
+    <div class="splash-progress-wrap">
+      <div class="splash-progress-track">
+        <div class="splash-progress-fill" id="splashBar"></div>
+      </div>
+      <div class="splash-pct" id="splashPct">0%</div>
+    </div>
+    <div class="splash-tag"><span>›</span> Initializing 3D environment...</div>
+  </div>
+  <div class="splash-lines">
+    <div class="splash-line-bar"></div>
+    <div class="splash-line-bar"></div>
+    <div class="splash-line-bar"></div>
+    <div class="splash-line-bar"></div>
+    <div class="splash-line-bar"></div>
+    <div class="splash-line-bar"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-inner">
+    <button class="lb-close" id="lbClose">✕</button>
+    <button class="lb-arrow lb-prev" id="lbPrev"><i class="fas fa-chevron-left"></i></button>
+    <div class="lb-content">
+      <div class="lb-visual" id="lbVisual"></div>
+    </div>
+    <button class="lb-arrow lb-next" id="lbNext"><i class="fas fa-chevron-right"></i></button>
+    <div class="lb-meta">
+      <div class="lb-title" id="lbTitle"></div>
+      <div class="lb-cat" id="lbCat"></div>
+    </div>
+    <div class="lb-dots" id="lbDots"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">MRK_3D</div>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="scan-line"></div>
+  <div>
+    <div class="hero-eyebrow reveal">3D Builder & Generalist</div>
+    <h1 class="hero-title reveal">
+      <div class="line1">Crafting</div>
+      <div class="line2">Worlds</div>
+      <div class="line3">in 3D</div>
+    </h1>
+    <p class="hero-desc reveal">Hard surface modeling, architectural visualization, and immersive environments — built with precision and purpose.</p>
+    <div class="hero-btns reveal">
+      <a href="#work" class="btn btn-solid">View Work <i class="fas fa-arrow-right"></i></a>
+      <a href="https://discord.gg/6j3RHAfstH" target="_blank" class="btn btn-outline"><i class="fab fa-discord"></i> Hire via Discord</a>
+    </div>
+    <div class="hero-stats reveal">
+      <div><div class="stat-num">3+</div><div class="stat-label">Years experience</div></div>
+      <div><div class="stat-num">50+</div><div class="stat-label">Assets built</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Original work</div></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <canvas class="hero-canvas" id="cubeCanvas"></canvas>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-inner" id="marqueeInner">
+    <span class="marquee-item"><span class="marquee-dot"></span>Blender</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Substance Painter</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Hard Surface</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Archviz</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Unreal Engine</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>PBR Texturing</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Sculpting</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Retopology</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>UV Mapping</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Game-Ready Assets</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Blender</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Substance Painter</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Hard Surface</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Archviz</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Unreal Engine</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>PBR Texturing</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Sculpting</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Retopology</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>UV Mapping</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Game-Ready Assets</span>
+  </div>
+</div>
+
+<!-- WORK -->
+<section id="work">
+  <div class="section-label reveal-left">// Selected Work</div>
+  <h2 class="section-title reveal">Asset Library</h2>
+  <p class="section-sub reveal">High-fidelity 3D models, environments, and architectural renders ready for production.</p>
+
+  <div class="portfolio-filter reveal">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="horror">Horror</button>
+    <button class="filter-btn" data-filter="archviz">Archviz</button>
+    <button class="filter-btn" data-filter="scifi">Sci-Fi</button>
+    <button class="filter-btn" data-filter="cartoon">Cartoon</button>
+  </div>
+
+  <div id="portfolioGroups">
+
+    <!-- GROUP 1: FNAF Horror -->
+    <div class="project-group reveal" data-group="horror">
+      <div class="project-group-header">
+        <div class="project-group-title">// FNAF Remake · Horror</div>
+        <div class="project-group-count">3 renders</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-multi pf-multi-3">
+        <div class="portfolio-item ar-landscape pf-multi-main" data-cat="horror" data-img="https://i.ibb.co/bYMTYqq/image-139.png" data-title="FNAF Remake — Main Hall" data-info="Horror atmosphere · Cinematic lighting · Environment">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/bYMTYqq/image-139.png" alt="FNAF Remake Main Hall" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Horror</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>FNAF Remake — Main Hall</h3><p>Horror atmosphere · Cinematic lighting · Environment</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="horror" data-img="https://i.ibb.co/rf3nnnP5/image-315-1.png" data-title="FNAF Remake — Stage" data-info="Horror · Stage set · Animatronic scene">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/rf3nnnP5/image-315-1.png" alt="FNAF Stage" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Horror</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>FNAF Remake — Stage</h3><p>Horror · Stage set · Animatronic scene</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="horror" data-img="https://i.ibb.co/pBhqmrHd/image-137.png" data-title="FNAF Remake — Detail" data-info="Horror detail · Prop work · Atmospheric render">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/pBhqmrHd/image-137.png" alt="FNAF Detail" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Horror</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>FNAF Remake — Detail</h3><p>Horror detail · Prop work · Atmospheric render</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP 2: Retro Modular Houses -->
+    <div class="project-group reveal" data-group="archviz">
+      <div class="project-group-header">
+        <div class="project-group-title">// Retro Modular Houses · Archviz</div>
+        <div class="project-group-count">2 renders</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-multi pf-multi-2">
+        <div class="portfolio-item ar-wide" data-cat="archviz" data-img="https://i.ibb.co/4ZSschxd/image.png" data-title="Retro House — Exterior A" data-info="Archviz · Modular · Retro style">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/4ZSschxd/image.png" alt="Retro House A" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Archviz</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Retro House — Exterior A</h3><p>Archviz · Modular · Retro style</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="archviz" data-img="https://i.ibb.co/hJQ4THJ2/im534age.png" data-title="Retro House — Exterior B" data-info="Archviz · Modular kit · PBR materials">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/hJQ4THJ2/im534age.png" alt="Retro House B" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Archviz</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Retro House — Exterior B</h3><p>Archviz · Modular kit · PBR materials</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP 3: Sci-Fi Corridor -->
+    <div class="project-group reveal" data-group="scifi">
+      <div class="project-group-header">
+        <div class="project-group-title">// Sci-Fi Research Complex · Sci-Fi</div>
+        <div class="project-group-count">3 renders</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-multi pf-multi-3">
+        <div class="portfolio-item ar-landscape pf-multi-main" data-cat="scifi" data-img="https://i.ibb.co/bRrDxkPb/ima4ge.png" data-title="Sci-Fi Corridor" data-info="Sci-Fi · Research complex · Atmospheric lighting">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/bRrDxkPb/ima4ge.png" alt="Sci-Fi Corridor" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Sci-Fi</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Sci-Fi Corridor</h3><p>Sci-Fi · Research complex · Atmospheric lighting</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="scifi" data-img="https://i.ibb.co/dwhdqBzW/1234.png" data-title="Research Complex — Interior A" data-info="Sci-Fi interior · Hard surface · Modular">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/dwhdqBzW/1234.png" alt="Research Complex A" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Sci-Fi</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Research Complex — Interior A</h3><p>Sci-Fi interior · Hard surface · Modular</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="scifi" data-img="https://i.ibb.co/qL54TdNw/imag3e.png" data-title="Research Complex — Interior B" data-info="Sci-Fi · Corridor · Emissive materials">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/qL54TdNw/imag3e.png" alt="Research Complex B" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Sci-Fi</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Research Complex — Interior B</h3><p>Sci-Fi · Corridor · Emissive materials</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP 4: Office -->
+    <div class="project-group reveal" data-group="archviz">
+      <div class="project-group-header">
+        <div class="project-group-title">// Office Interior · Archviz</div>
+        <div class="project-group-count">1 render</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-wide">
+        <div class="portfolio-item ar-cinema" data-cat="archviz" data-img="https://i.ibb.co/m5V0NbWd/34532.png" data-title="Office Interior" data-info="Archviz · Beige tones · Interior design">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/m5V0NbWd/34532.png" alt="Office Interior" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Archviz</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Office Interior</h3><p>Archviz · Beige tones · Interior design</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP 5: Cartoon -->
+    <div class="project-group reveal" data-group="cartoon">
+      <div class="project-group-header">
+        <div class="project-group-title">// Cartoon Style · Game Assets</div>
+        <div class="project-group-count">1 render</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-wide">
+        <div class="portfolio-item ar-cinema" data-cat="cartoon" data-img="https://i.ibb.co/ZR6b0xVR/2314.png" data-title="Cartoon Environment" data-info="Cartoon style · Pls Donate inspired · Stylized assets">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/ZR6b0xVR/2314.png" alt="Cartoon Environment" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Cartoon</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Cartoon Environment</h3><p>Cartoon style · Stylized assets · Game-ready</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP 6: Space Lab -->
+    <div class="project-group reveal" data-group="scifi">
+      <div class="project-group-header">
+        <div class="project-group-title">// Space Science Lab · Sci-Fi</div>
+        <div class="project-group-count">1 render</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-wide">
+        <div class="portfolio-item ar-cinema" data-cat="scifi" data-img="https://i.ibb.co/MDXbGR4T/photo-2026-04-13-17-11-19.jpg" data-title="Space Science Laboratory" data-info="Sci-Fi · Orange tones · Research lab environment">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/MDXbGR4T/photo-2026-04-13-17-11-19.jpg" alt="Space Science Lab" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">Sci-Fi</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Space Science Laboratory</h3><p>Sci-Fi · Orange tones · Research lab environment</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP 7: Additional works -->
+    <div class="project-group reveal" data-group="all">
+      <div class="project-group-header">
+        <div class="project-group-title">// Additional Works</div>
+        <div class="project-group-count">7 renders</div>
+        <div class="project-group-line"></div>
+      </div>
+      <div class="pf-multi" style="grid-template-columns:repeat(3,1fr)">
+        <div class="portfolio-item ar-wide" data-cat="scifi" data-img="https://i.ibb.co/35dBz86x/image.png" data-title="Work #1" data-info="3D render · Environment">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/35dBz86x/image.png" alt="Work 1" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #1</h3><p>3D render · Environment</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="archviz" data-img="https://i.ibb.co/Q3dFWq0M/image.png" data-title="Work #2" data-info="3D render · Archviz">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/Q3dFWq0M/image.png" alt="Work 2" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #2</h3><p>3D render · Archviz</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="scifi" data-img="https://i.ibb.co/KcgdPyc2/image.png" data-title="Work #3" data-info="3D render · Sci-Fi">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/KcgdPyc2/image.png" alt="Work 3" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #3</h3><p>3D render · Sci-Fi</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="archviz" data-img="https://i.ibb.co/fz9Zq781/image.png" data-title="Work #4" data-info="3D render · Environment">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/fz9Zq781/image.png" alt="Work 4" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #4</h3><p>3D render · Environment</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="scifi" data-img="https://i.ibb.co/pBsvWfQv/image.png" data-title="Work #5" data-info="3D render · Interior">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/pBsvWfQv/image.png" alt="Work 5" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #5</h3><p>3D render · Interior</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="archviz" data-img="https://i.ibb.co/BV6JgwqC/image.png" data-title="Work #6" data-info="3D render · Exterior">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/BV6JgwqC/image.png" alt="Work 6" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #6</h3><p>3D render · Exterior</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+        <div class="portfolio-item ar-wide" data-cat="scifi" data-img="https://i.ibb.co/qYxzXBM9/image.png" data-title="Work #7" data-info="3D render · Sci-Fi">
+          <div class="pf-img-wrap"><img class="pf-img" src="https://i.ibb.co/qYxzXBM9/image.png" alt="Work 7" loading="lazy" onerror="this.style.opacity='0.3'"></div>
+          <div class="portfolio-tag">3D</div>
+          <div class="portfolio-overlay"><div class="portfolio-info"><h3>Work #7</h3><p>3D render · Sci-Fi</p></div></div>
+          <div class="portfolio-zoom"><i class="fas fa-expand"></i></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end portfolioGroups -->
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label reveal-left">// Background</div>
+  <h2 class="section-title reveal">Who is Miroks</h2>
+  <p class="section-sub reveal">3D artist with 3+ years of full pipeline experience — from concept block-outs to final renders.</p>
+  <div class="about-grid">
+    <div class="about-card reveal tool-card">
+      <div class="about-card-top">
+        <div class="tool-logo-wrap">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="20" fill="#1A1A1A"/><ellipse cx="20" cy="22" rx="11" ry="11" fill="none" stroke="#E87D0D" stroke-width="2.5"/><circle cx="20" cy="22" r="4.5" fill="#E87D0D"/><rect x="9" y="14" width="14" height="3" rx="1.5" fill="#E87D0D" transform="rotate(-10 9 14)"/><line x1="20" y1="11" x2="20" y2="8" stroke="#E87D0D" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="8" x2="27" y2="8" stroke="#E87D0D" stroke-width="2" stroke-linecap="round"/><circle cx="27" cy="8" r="2" fill="#E87D0D"/></svg>
+        </div>
+        <div class="tool-badge">Blender</div>
+      </div>
+      <h3>Hard Surface Modeling</h3>
+      <p>Every model starts in Blender — mechanical props, vehicles, and complex structures. Clean quads, production-ready topology, optimized for any pipeline from game engines to archviz.</p>
+      <div class="card-feature-row">
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Clean quad topology</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Boolean workflows</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> LOD optimization</span>
+      </div>
+    </div>
+    <div class="about-card reveal tool-card">
+      <div class="about-card-top">
+        <div class="tool-logo-wrap">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="#1A1A1A"/><rect x="10" y="10" width="20" height="20" rx="2" fill="#00A2FF" transform="rotate(12 20 20)"/><rect x="13" y="13" width="14" height="14" rx="1.5" fill="#1A1A1A" transform="rotate(12 20 20)"/><rect x="16" y="16" width="8" height="8" rx="1" fill="#00A2FF" transform="rotate(12 20 20)"/></svg>
+        </div>
+        <div class="tool-badge" style="background:rgba(0,162,255,0.15);border-color:rgba(0,162,255,0.35);color:#00A2FF">Roblox Studio</div>
+      </div>
+      <h3>Architectural Visualization</h3>
+      <p>Exterior and interior builds with physically accurate lighting and materials. Structures designed to scale — from residential concepts to full cyberpunk city blocks, deployable in-engine.</p>
+      <div class="card-feature-row">
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Interior & exterior</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> PBR lighting rigs</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Game-ready scale</span>
+      </div>
+    </div>
+    <div class="about-card reveal tool-card substance-highlight">
+      <div class="substance-glow"></div>
+      <div class="about-card-top">
+        <div class="tool-logo-wrap substance-logo-pulse">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="#1A1A1A"/><path d="M8 28 Q12 20 20 14 Q28 8 32 12 Q36 16 30 22 Q24 28 16 30 Q10 31 8 28Z" fill="#8B2BE2" opacity="0.9"/><path d="M10 27 Q14 21 21 16 Q27 11 31 14" stroke="#C77DFF" stroke-width="1.5" fill="none" opacity="0.8"/><circle cx="32" cy="12" r="4" fill="#C77DFF"/><circle cx="32" cy="12" r="2" fill="white" opacity="0.6"/><circle cx="13" cy="26" r="2.5" fill="#7c6bff" opacity="0.8"/><circle cx="18" cy="29" r="2" fill="#c77dff" opacity="0.7"/><circle cx="24" cy="27" r="1.5" fill="#8B2BE2" opacity="0.8"/><line x1="8" y1="33" x2="32" y2="33" stroke="#C77DFF" stroke-width="1" opacity="0.4"/><line x1="8" y1="36" x2="26" y2="36" stroke="#7c6bff" stroke-width="1" opacity="0.3"/></svg>
+        </div>
+        <div class="tool-badge substance-badge">Substance Painter</div>
+        <div class="handmade-tag">✦ Handmade</div>
+      </div>
+      <h3>Texturing & Materials</h3>
+      <p>Every texture is crafted <strong>manually in Substance Painter</strong> — no AI-generated or stock materials. Custom PBR maps from scratch: base color, roughness, metallic, normal, and emissive.</p>
+      <div class="card-feature-row">
+        <span class="card-feat"><i class="fas fa-check-circle"></i> 100% handpainted</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Full PBR maps</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Custom ID masks</span>
+      </div>
+    </div>
+    <div class="about-card reveal tool-card">
+      <div class="about-card-top">
+        <div class="tool-logo-wrap">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="20" fill="#1A1A1A"/><path d="M20 6 L34 20 L20 34 L6 20 Z" fill="none" stroke="#0E1128" stroke-width="1"/><circle cx="20" cy="20" r="12" fill="#0E1128" stroke="#2563EB" stroke-width="1.5"/><text x="20" y="25" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="13" fill="white">UE</text></svg>
+        </div>
+        <div class="tool-badge" style="background:rgba(37,99,235,0.15);border-color:rgba(37,99,235,0.35);color:#60a5fa">Unreal Engine</div>
+      </div>
+      <h3>Real-Time & Game Assets</h3>
+      <p>LOD creation, UV optimization, and Unreal Engine integration. Assets built to engine specs, performance budgets, and real-time lighting conditions.</p>
+      <div class="card-feature-row">
+        <span class="card-feat"><i class="fas fa-check-circle"></i> LOD chains</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> Nanite ready</span>
+        <span class="card-feat"><i class="fas fa-check-circle"></i> UE5 compatible</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tools-showcase reveal">
+    <div class="tools-showcase-label">Primary Tools</div>
+    <div class="tools-list">
+      <div class="tool-item" data-tip="3D Modeling & Sculpting">
+        <div class="tool-item-icon"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="14" fill="#1A1A1A"/><ellipse cx="14" cy="15" rx="7.5" ry="7.5" fill="none" stroke="#E87D0D" stroke-width="1.8"/><circle cx="14" cy="15" r="3" fill="#E87D0D"/><rect x="5" y="9.5" width="9" height="2" rx="1" fill="#E87D0D" transform="rotate(-8 5 9.5)"/><line x1="14" y1="7.5" x2="14" y2="5.5" stroke="#E87D0D" stroke-width="1.5" stroke-linecap="round"/><line x1="14" y1="5.5" x2="19" y2="5.5" stroke="#E87D0D" stroke-width="1.5" stroke-linecap="round"/><circle cx="19" cy="5.5" r="1.4" fill="#E87D0D"/></svg></div>
+        <span>Blender</span>
+      </div>
+      <div class="tool-sep">→</div>
+      <div class="tool-item" data-tip="Handmade PBR Textures">
+        <div class="tool-item-icon substance-pulse"><svg width="28" height="28" viewBox="0 0 28 28"><rect width="28" height="28" rx="5" fill="#1A1A1A"/><path d="M5 20 Q8 14 14 10 Q19 6 22 9 Q25 12 21 16 Q17 20 11 21 Q7 22 5 20Z" fill="#8B2BE2" opacity="0.9"/><circle cx="22" cy="9" r="3" fill="#C77DFF"/><circle cx="22" cy="9" r="1.4" fill="white" opacity="0.6"/><circle cx="9" cy="18" r="1.8" fill="#7c6bff" opacity="0.8"/><circle cx="14" cy="20.5" r="1.4" fill="#c77dff" opacity="0.7"/></svg></div>
+        <span>Substance Painter</span>
+        <div class="tool-hand-badge">✦</div>
+      </div>
+      <div class="tool-sep">→</div>
+      <div class="tool-item" data-tip="Roblox Studio Builds">
+        <div class="tool-item-icon"><svg width="28" height="28" viewBox="0 0 28 28"><rect width="28" height="28" rx="5" fill="#1A1A1A"/><rect x="7" y="7" width="14" height="14" rx="1.5" fill="#00A2FF" transform="rotate(10 14 14)"/><rect x="9.5" y="9.5" width="9" height="9" rx="1" fill="#1A1A1A" transform="rotate(10 14 14)"/><rect x="11.5" y="11.5" width="5" height="5" rx="0.5" fill="#00A2FF" transform="rotate(10 14 14)"/></svg></div>
+        <span>Roblox Studio</span>
+      </div>
+      <div class="tool-sep">→</div>
+      <div class="tool-item" data-tip="High-Poly Sculpting">
+        <div class="tool-item-icon"><svg width="28" height="28" viewBox="0 0 28 28"><rect width="28" height="28" rx="14" fill="#1A1A1A"/><path d="M14 5 Q20 8 22 14 Q20 20 14 23 Q8 20 6 14 Q8 8 14 5Z" fill="none" stroke="#5B8DD9" stroke-width="1.5"/><path d="M14 8 Q18 11 19 14 Q18 17 14 20 Q10 17 9 14 Q10 11 14 8Z" fill="rgba(91,141,217,0.25)"/><circle cx="14" cy="14" r="3" fill="#5B8DD9"/></svg></div>
+        <span>ZBrush</span>
+      </div>
+      <div class="tool-sep">→</div>
+      <div class="tool-item" data-tip="Real-Time Engine">
+        <div class="tool-item-icon"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="14" fill="#1A1A1A"/><circle cx="14" cy="14" r="9" fill="#0E1128" stroke="#2563EB" stroke-width="1.2"/><text x="14" y="18" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="9" fill="white">UE5</text></svg></div>
+        <span>Unreal Engine</span>
+      </div>
+      <div class="tool-sep">→</div>
+      <div class="tool-item" data-tip="Texture Baking & Presentation">
+        <div class="tool-item-icon"><svg width="28" height="28" viewBox="0 0 28 28"><rect width="28" height="28" rx="5" fill="#1A1A1A"/><rect x="4" y="4" width="9" height="9" rx="1" fill="#E8A020" opacity="0.8"/><rect x="15" y="4" width="9" height="9" rx="1" fill="#E05020" opacity="0.8"/><rect x="4" y="15" width="9" height="9" rx="1" fill="#20A0E0" opacity="0.8"/><rect x="15" y="15" width="9" height="9" rx="1" fill="#40C060" opacity="0.8"/></svg></div>
+        <span>Marmoset</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="skills-row reveal">
+    <span class="skill-pill">Blender</span><span class="skill-pill">Substance Painter</span><span class="skill-pill">Unreal Engine</span><span class="skill-pill">ZBrush</span><span class="skill-pill">Marmoset</span><span class="skill-pill">Photoshop</span><span class="skill-pill">UV Mapping</span><span class="skill-pill">Retopology</span><span class="skill-pill">PBR Pipeline</span><span class="skill-pill">HDRI Lighting</span>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="section-label reveal-left">// Workflow</div>
+  <h2 class="section-title reveal">How I Build</h2>
+  <p class="section-sub reveal">A clean, structured pipeline from brief to final deliverable.</p>
+  <div class="process-steps reveal">
+    <div class="process-step"><div class="step-dot"></div><div class="step-num">01 —</div><div class="step-title">Concept & Block-out</div><div class="step-desc">Reference gathering, silhouette blocking, and proportion studies before committing to detail work.</div></div>
+    <div class="process-step"><div class="step-dot"></div><div class="step-num">02 —</div><div class="step-title">High-Poly Sculpt</div><div class="step-desc">Detail passes, boolean operations, surface bevels — building the source mesh for baking.</div></div>
+    <div class="process-step"><div class="step-dot"></div><div class="step-num">03 —</div><div class="step-title">Retopo & UVs</div><div class="step-desc">Clean quad-based retopology, optimized UV islands, and normal bake validation.</div></div>
+    <div class="process-step"><div class="step-num">04 —</div><div class="step-title">Texture & Render</div><div class="step-desc">Substance Painter texturing, final lighting setup, and high-quality presentation renders.</div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="contact" style="padding-top:0">
+  <div class="cta-block reveal">
+    <div class="cta-label">// Let's Work Together</div>
+    <h2 class="cta-title">Commission a Build</h2>
+    <p class="cta-sub">Open for freelance work — game assets, archviz, props, and environments.</p>
+    <a href="https://discord.gg/6j3RHAfstH" target="_blank" class="discord-btn"><i class="fab fa-discord" style="font-size:1.2rem"></i> Connect on Discord</a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-logo">MRK_3D</div>
+  <div class="footer-copy">© 2025 Miroks — All works original</div>
+  <div class="footer-socials">
+    <a href="#"><i class="fab fa-instagram"></i></a>
+    <a href="#"><i class="fab fa-artstation"></i></a>
+    <a href="#"><i class="fab fa-github"></i></a>
+  </div>
+</footer>
+
+<!-- AUDIO CONTROLS -->
+<div class="audio-controls">
+  <button class="sound-btn" id="musicBtn" title="Toggle ambient music"><i class="fas fa-music"></i></button>
+  <button class="sound-btn" id="soundBtn" title="Toggle UI sounds"><i class="fas fa-volume-up"></i></button>
+</div>
+
+<script>
+/* ===== AMBIENT MUSIC ENGINE ===== */
+const Ambient = (() => {
+  let ctx = null, playing = false, gainNode = null, sources = [];
+  function init() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!gainNode) { gainNode = ctx.createGain(); gainNode.connect(ctx.destination); gainNode.gain.value = 0; }
+  }
+  function createDrone(freq, vol, detune) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 800; filter.Q.value = 0.5;
+    osc.type = 'sine'; osc.frequency.value = freq;
+    if (detune) osc.detune.value = detune;
+    g.gain.value = vol;
+    osc.connect(filter); filter.connect(g); g.connect(gainNode);
+    osc.start();
+    sources.push(osc);
+    return osc;
+  }
+  function createPad(freq, vol) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const g = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 600; filter.Q.value = 1;
+    osc1.type = 'sine'; osc1.frequency.value = freq; osc1.detune.value = -5;
+    osc2.type = 'triangle'; osc2.frequency.value = freq; osc2.detune.value = 5;
+    g.gain.value = vol;
+    osc1.connect(filter); osc2.connect(filter); filter.connect(g); g.connect(gainNode);
+    osc1.start(); osc2.start();
+    sources.push(osc1, osc2);
+  }
+  function addChime() {
+    if (!playing) return;
+    const notes = [261.6, 329.6, 392, 523.3, 659.3];
+    const n = notes[Math.floor(Math.random() * notes.length)];
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 200;
+    osc.type = 'sine'; osc.frequency.value = n;
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.025, ctx.currentTime + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+    osc.connect(filter); filter.connect(g); g.connect(gainNode);
+    osc.start(); osc.stop(ctx.currentTime + 2.6);
+    const delay = 3000 + Math.random() * 7000;
+    if (playing) setTimeout(addChime, delay);
+  }
+  return {
+    start() {
+      init();
+      if (playing) return;
+      playing = true;
+      // Drones — very subtle
+      createDrone(55, 0.3);       // deep bass
+      createDrone(110, 0.2, 3);   // octave slightly detuned
+      createDrone(220, 0.15, -4); // harmonics
+      createPad(165.4, 0.15);     // soft pad E
+      createPad(196, 0.12);       // G pad
+      // Fade in slowly
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 4);
+      setTimeout(addChime, 2000);
+    },
+    stop() {
+      if (!playing) return;
+      playing = false;
+      if (gainNode) {
+        gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
+        setTimeout(() => {
+          sources.forEach(s => { try { s.stop(); } catch(e){} });
+          sources = [];
+        }, 2200);
+      }
+    },
+    isPlaying() { return playing; }
+  };
+})();
+
+/* ===== SOFT UI SOUND ENGINE ===== */
+const SFX = (() => {
+  let ctx = null, enabled = true;
+  function init() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+  function tone(freq, type, vol, attack, decay, start) {
+    if (!enabled) return; init();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 2000;
+    osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+    gain.gain.setValueAtTime(0, ctx.currentTime + start);
+    gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + attack);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + attack + decay);
+    osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + attack + decay + 0.05);
+  }
+  return {
+    hover()  { tone(660, 'sine', 0.015, 0.02, 0.12, 0); },
+    click()  { tone(520, 'sine', 0.03, 0.01, 0.18, 0); tone(700, 'sine', 0.02, 0.01, 0.14, 0.04); },
+    open()   { tone(360, 'sine', 0.025, 0.02, 0.25, 0); tone(450, 'sine', 0.02, 0.02, 0.2, 0.08); tone(540, 'sine', 0.015, 0.02, 0.18, 0.16); },
+    close()  { tone(450, 'sine', 0.02, 0.01, 0.18, 0); tone(360, 'sine', 0.015, 0.01, 0.15, 0.08); },
+    nav()    { tone(580, 'sine', 0.015, 0.01, 0.12, 0); },
+    splash() { [220,277,330,440].forEach((f,i) => tone(f, 'sine', 0.025, 0.04, 0.4, i * 0.14)); },
+    filter() { tone(480, 'sine', 0.015, 0.01, 0.12, 0); },
+    toggle(v){ enabled = v; },
+    isEnabled(){ return enabled; }
+  };
+})();
+
+/* Music button */
+const musicBtn = document.getElementById('musicBtn');
+let musicStarted = false;
+musicBtn.addEventListener('click', () => {
+  SFX.click();
+  if (!Ambient.isPlaying()) {
+    Ambient.start();
+    musicBtn.innerHTML = '<i class="fas fa-music"></i>';
+    musicBtn.style.borderColor = 'var(--accent)';
+    musicBtn.style.color = 'var(--accent)';
+  } else {
+    Ambient.stop();
+    musicBtn.innerHTML = '<i class="fas fa-music"></i>';
+    musicBtn.classList.add('muted');
+    musicBtn.style.borderColor = '';
+    musicBtn.style.color = '';
+    musicBtn.classList.remove('muted');
+    musicBtn.classList.add('muted');
+  }
+});
+
+/* Sound toggle */
+const soundBtn = document.getElementById('soundBtn');
+soundBtn.addEventListener('click', () => {
+  const now = !SFX.isEnabled(); SFX.toggle(now);
+  soundBtn.innerHTML = now ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+  soundBtn.classList.toggle('muted', !now);
+  if (now) SFX.click();
+});
+
+/* ===== SPLASH BG ===== */
+(function(){
+  const c = document.getElementById('splashBg'); if (!c) return;
+  const ctx = c.getContext('2d');
+  function resize(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const pts = Array.from({length:80}, () => ({x:Math.random()*c.width, y:Math.random()*c.height, vx:(Math.random()-0.5)*0.4, vy:(Math.random()-0.5)*0.4, r:Math.random()*1.5+0.5, a:Math.random()}));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    pts.forEach((p,i) => {
+      pts.slice(i+1).forEach(q => {
+        const dx=p.x-q.x, dy=p.y-q.y, d=Math.sqrt(dx*dx+dy*dy);
+        if(d<140){ ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.strokeStyle=`rgba(124,107,255,${(1-d/140)*0.15})`; ctx.lineWidth=0.5; ctx.stroke(); }
+      });
+    });
+    pts.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>c.width) p.vx*=-1;
+      if(p.y<0||p.y>c.height) p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(124,107,255,${p.a*0.6})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ===== SPLASH PROGRESS ===== */
+const splash = document.getElementById('splash');
+const bar = document.getElementById('splashBar');
+const pct = document.getElementById('splashPct');
+let prog = 0;
+const msgs = ['// Initializing 3D environment...','// Loading geometry buffers...','// Compiling shaders...','// Rendering portfolio...','// Almost there...'];
+let msgIdx = 0;
+const tagEl = splash.querySelector('.splash-tag');
+const iv = setInterval(() => {
+  prog += Math.random()*15+8; if(prog>100) prog=100;
+  bar.style.width = prog+'%'; pct.textContent = Math.round(prog)+'%';
+  if(prog > msgIdx*25 && msgIdx < msgs.length){ tagEl.innerHTML=`<span>›</span> ${msgs[msgIdx]}`; msgIdx++; }
+  if(prog >= 100){ clearInterval(iv); setTimeout(() => { SFX.splash(); splash.classList.add('gone'); }, 400); }
+}, 140);
+
+/* ===== STAR FIELD ===== */
+(function(){
+  const c = document.getElementById('starCanvas'); if(!c) return;
+  const ctx = c.getContext('2d');
+  function resize(){ c.width=window.innerWidth; c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', () => { resize(); initStars(); });
+  let stars = [];
+  function initStars(){
+    stars = Array.from({length:180}, () => ({x:Math.random()*c.width, y:Math.random()*c.height, r:Math.random()*1.2+0.2, speed:Math.random()*0.15+0.02, twinkle:Math.random()*Math.PI*2, twinkleSpeed:Math.random()*0.02+0.005}));
+  }
+  initStars();
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s => {
+      s.twinkle+=s.twinkleSpeed; s.y+=s.speed;
+      if(s.y>c.height){ s.y=-2; s.x=Math.random()*c.width; }
+      const alpha = 0.2+Math.sin(s.twinkle)*0.3;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(200,190,255,${Math.max(0,alpha)})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ===== CURSOR ===== */
+const cur = document.getElementById('cur'), curRing = document.getElementById('curRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cur.style.left=mx-4+'px'; cur.style.top=my-4+'px'; });
+(function ring(){ rx+=(mx-rx-16)*0.15; ry+=(my-ry-16)*0.15; curRing.style.left=rx+'px'; curRing.style.top=ry+'px'; requestAnimationFrame(ring); })();
+document.querySelectorAll('a,button,.portfolio-item,.about-card,.filter-btn,.skill-pill,.tool-item').forEach(el => {
+  el.addEventListener('mouseenter', () => { curRing.classList.add('active'); SFX.hover(); });
+  el.addEventListener('mouseleave', () => curRing.classList.remove('active'));
+});
+
+/* ===== NAV ===== */
+window.addEventListener('scroll', () => document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60));
+
+/* ===== REVEAL ===== */
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); revObs.unobserve(e.target); } });
+}, {threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal,.reveal-left').forEach(el => revObs.observe(el));
+
+/* ===== PORTFOLIO FILTER ===== */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); SFX.filter();
+    const f = btn.dataset.filter;
+    document.querySelectorAll('.project-group').forEach(group => {
+      const items = group.querySelectorAll('.portfolio-item');
+      let anyVisible = false;
+      items.forEach(item => {
+        const show = f === 'all' || item.dataset.cat === f;
+        item.style.opacity = show ? '1' : '0.1';
+        item.style.pointerEvents = show ? 'auto' : 'none';
+        if (show) anyVisible = true;
+      });
+      group.style.opacity = (f === 'all' || anyVisible) ? '1' : '0.15';
+      group.style.pointerEvents = (f === 'all' || anyVisible) ? 'auto' : 'none';
+    });
+  });
+});
+
+/* ===== LIGHTBOX ===== */
+const lb = document.getElementById('lightbox');
+const lbVisual = document.getElementById('lbVisual');
+const lbClose = document.getElementById('lbClose');
+const lbPrev = document.getElementById('lbPrev');
+const lbNext = document.getElementById('lbNext');
+const lbTitle = document.getElementById('lbTitle');
+const lbCat = document.getElementById('lbCat');
+const lbDots = document.getElementById('lbDots');
+
+const items = [...document.querySelectorAll('.portfolio-item')];
+let current = 0;
+
+function openLB(idx){ current=idx; showLB(); SFX.open(); }
+function showLB(){
+  const item = items[current];
+  const imgSrc = item.dataset.img;
+  const title = item.dataset.title;
+  const cat = item.querySelector('.portfolio-tag') ? item.querySelector('.portfolio-tag').textContent : '';
+  const info = item.dataset.info || '';
+  lbVisual.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = imgSrc;
+  img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:12px;background:#080810';
+  lbVisual.appendChild(img);
+  lbTitle.textContent = title;
+  lbCat.textContent = cat;
+  lbDots.innerHTML = '';
+  items.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'lb-dot'+(i===current?' active':'');
+    d.onclick = () => { current=i; showLB(); SFX.nav(); };
+    lbDots.appendChild(d);
+  });
+  lb.classList.add('open'); document.body.style.overflow='hidden';
+}
+function closeLB(){ lb.classList.remove('open'); document.body.style.overflow=''; SFX.close(); }
+lbClose.onclick = closeLB;
+lb.addEventListener('click', e => { if(e.target===lb) closeLB(); });
+lbPrev.onclick = () => { current=(current-1+items.length)%items.length; showLB(); SFX.nav(); };
+lbNext.onclick = () => { current=(current+1)%items.length; showLB(); SFX.nav(); };
+document.addEventListener('keydown', e => {
+  if(!lb.classList.contains('open')) return;
+  if(e.key==='Escape') closeLB();
+  if(e.key==='ArrowLeft'){ current=(current-1+items.length)%items.length; showLB(); SFX.nav(); }
+  if(e.key==='ArrowRight'){ current=(current+1)%items.length; showLB(); SFX.nav(); }
+});
+items.forEach((item,i) => { item.addEventListener('click', () => openLB(i)); });
+
+/* ===== 3D ROTATING CUBE ===== */
+(function(){
+  const canvas = document.getElementById('cubeCanvas'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width=420; canvas.height=420;
+  const cx=210, cy=210; let angle=0, angleX=0.3;
+  const verts=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  const faces=[[0,1,2,3,'rgba(124,107,255,0.18)'],[4,5,6,7,'rgba(199,125,255,0.18)'],[0,1,5,4,'rgba(124,107,255,0.12)'],[2,3,7,6,'rgba(199,125,255,0.12)'],[0,3,7,4,'rgba(140,120,255,0.14)'],[1,2,6,5,'rgba(180,140,255,0.14)']];
+  function project(x,y,z){
+    const cy_=Math.cos(angle),sy=Math.sin(angle),cx_=Math.cos(angleX),sx=Math.sin(angleX);
+    let rx=x*cy_-z*sy, rz0=x*sy+z*cy_, ry=y*cx_-rz0*sx, rz=y*sx+rz0*cx_;
+    const fov=400,scale=fov/(fov+rz+200);
+    return[cx+rx*scale*90, cy+ry*scale*90, scale, rz];
+  }
+  function drawCube(){
+    ctx.clearRect(0,0,420,420);
+    const projected=verts.map(v=>project(v[0],v[1],v[2]));
+    const sorted=[...faces].sort((a,b)=>{const da=a.slice(0,4).reduce((s,i)=>s+projected[i][3],0)/4,db=b.slice(0,4).reduce((s,i)=>s+projected[i][3],0)/4;return da-db});
+    sorted.forEach(face=>{
+      const[i0,i1,i2,i3,color]=face, pts=[projected[i0],projected[i1],projected[i2],projected[i3]];
+      ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);pts.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));ctx.closePath();
+      ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='rgba(180,160,255,0.7)';ctx.lineWidth=1;ctx.stroke();
+    });
+    projected.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],3,0,Math.PI*2);ctx.fillStyle='rgba(220,190,255,0.9)';ctx.fill();});
+    ctx.beginPath();ctx.ellipse(cx,cy,130,40,angle*0.3,0,Math.PI*2);ctx.strokeStyle='rgba(124,107,255,0.15)';ctx.lineWidth=1;ctx.stroke();
+    const ox=cx+Math.cos(angle*2)*130, oy=cy+Math.sin(angle*2)*40*Math.cos(0.3);
+    ctx.beginPath();ctx.arc(ox,oy,4,0,Math.PI*2);ctx.fillStyle='rgba(199,125,255,0.8)';ctx.fill();
+    angle+=0.008; requestAnimationFrame(drawCube);
+  }
+  drawCube();
+})();
+
+/* ===== FLOATING PARTICLES ===== */
+(function(){
+  for(let i=0;i<12;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const size=Math.random()*3+1;
+    p.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${Math.random()*20+15}s;animation-delay:${Math.random()*15}s;opacity:${Math.random()*0.4+0.1}`;
+    document.body.appendChild(p);
+  }
+})();
+</script>
+</body>
+</html>
